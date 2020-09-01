@@ -1,0 +1,50 @@
+# 事實查核平台資料
+url = "https://tfc-taiwan.org.tw/articles/report"
+for page in range(0,60,1):
+	url_page = url + "?page="+str(page)
+	req = requests.get(url_page)
+	objsoup = bs4.BeautifulSoup(req.text,"lxml")
+	title = objsoup.find_all('h3')
+	for title_art in title:
+		a = title_art.find('a')
+		title = [a.text]
+		href = ["https://tfc-taiwan.org.tw"+a.get("href")]
+		print(title[0].strip().lstrip().rstrip(','))
+		
+		db = pymysql.connect("Localhost","root","SEVENteen=13","fake_news")
+		cursor = db.cursor()
+		sql = "INSERT INTO FactCheck(TITLE, \
+				WEBSITE) \
+		 		VALUES ('%s', '%s')" % \
+		 		(title[0].strip().lstrip().rstrip(','),href[0])
+		try:
+			cursor.execute(sql)
+			db.commit()
+		except:
+			db.rollback()
+		db.close()
+		
+	time.sleep(3)
+
+
+
+
+import requests
+import bs4
+import csv
+import time
+url = "https://tfc-taiwan.org.tw/articles/report"
+with open ('data.csv','w',newline = "") as csvfile:
+    writer = csv.writer(csvfile)
+    for page in range(0,60,1):
+        url_page = url + "?page="+str(page)
+        req = requests.get(url)
+        objsoup = bs4.BeautifulSoup(req.text,"lxml")
+        title = objsoup.find_all('h3')
+        for title_art in title:
+            a = title_art.find('a')
+            title = [a.text]
+            href = ["https://tfc-taiwan.org.tw"+a.get("href")]
+            content = [title[0].strip().lstrip().rstrip(','),href[0]]
+            writer.writerow(content)
+        time.sleep(1)
